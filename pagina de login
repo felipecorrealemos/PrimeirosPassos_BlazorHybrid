@@ -1,0 +1,49 @@
+@inject NavigationManager navigation
+@page "/"
+
+<img src="image/login.png" class="w-25" />
+
+<h1>Login</h1>
+
+
+<br /><br />
+
+<label>Nome</label><br />
+<input type="text" class="form-control w-25" @bind="nome"/>
+<br />
+<label>Senha</label>
+<br />
+<input type="password" class="form-control w-25" @bind="senha"/>
+<br />
+<button class="btn btn-outline-primary" @onclick="Login">Entrar</button>
+<br />
+<p>Mensagem: @mensagem</p>
+
+@code{
+    string nome;
+    string senha;
+    string mensagem;
+
+    void Entrar()
+    {
+        mensagem = "Botao funcionando";
+    }
+
+    void Login()
+    {
+        //logando no sistema
+        if (nome == "admin" && senha == "1234")
+        {
+            //mensagem = "Logado com sucesso";
+            navigation.NavigateTo("/cadastrar");
+        }
+
+        else
+        {
+            mensagem = "Senha ou usuario incorreto";
+        }
+    }
+
+
+}
+
