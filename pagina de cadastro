@@ -1,0 +1,46 @@
+@page "/cadastrar"
+
+<h1>Cadastro de Cliente</h1>
+
+<label>Nome</label>
+<br />
+<input type="text" class="form-control w-25" @bind="nome" />
+<br />
+<label>email</label>
+<br />
+<input type="text" class="form-control w-25" @bind="email" />
+<br />
+<label>telefone</label>
+<br />
+<input type="text" class="form-control w-25" @bind="telefone" />
+<br />
+
+<button class="btn btn-outline-primary" @onclick="Cadastro">Cadastrar</button>
+<br />
+<p>Mensagem: @mensagem</p>
+
+@code {
+
+    string nome;
+    string email;
+    string telefone;
+    string mensagem;
+
+    Cliente cliente1 = new Cliente();
+    
+    void Cadastro()
+    {
+        mensagem = "botao funcionando";
+
+        
+    }
+
+    public class Cliente()
+    {
+        public string nome { get; set; }
+        public string email { get; set; }
+        public string telefone { get; set; }
+
+    }
+
+}
