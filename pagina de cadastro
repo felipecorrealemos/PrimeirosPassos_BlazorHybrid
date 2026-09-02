@@ -1,4 +1,5 @@
-@page "/cadastrar"
+@using MySql.Data.MySqlClient
+@page "/"
 
 <h1>Cadastro de Cliente</h1>
 
@@ -17,7 +18,36 @@
 
 <button class="btn btn-outline-primary" @onclick="Cadastro">Cadastrar</button>
 <br />
+<br />
 <p>Mensagem: @mensagem</p>
+
+<br />
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>email</th>
+            <th>telefone</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Cliente cliente in lista)
+        {
+            <tr>
+                <td>@cliente.id</td>
+                <td>@cliente.nome</td>
+                <td>@cliente.email</td>
+                <td>@cliente.telefone</td>
+                <td><button class="btn btn-outline-danger" @onclick="() => Excluir(cliente.id)">Excluir</button></td>
+
+            </tr>
+        }
+
+    </tbody>
+</table>
 
 @code {
 
@@ -26,21 +56,114 @@
     string telefone;
     string mensagem;
 
-    Cliente cliente1 = new Cliente();
-    
+    List<Cliente> lista = new List<Cliente>();
+
+    protected override void OnInitialized()
+    {
+        ListarClientes();
+    }
+
     void Cadastro()
     {
-        mensagem = "botao funcionando";
+        //mensagem = "botao funcionando";
 
-        
+        //salvarNoBanco
+        SalvarNoBanco(nome, email, telefone);
+        ListarClientes();
+        LimparCampos();
+    }
+
+    void SalvarNoBanco(string nome, string email, string telefone)
+    {
+        try
+        {
+            //servidor - nome do banco - usuario - senha
+            string conexao = "server=localhost;database=cadastro_cliente;user=root;password=root";
+
+            using MySqlConnection conn = new MySqlConnection(conexao);
+            conn.Open();
+
+            string sql = "INSERT INTO CLIENTE (NOME, EMAIL, TELEFONE) VALUES (@nome, @email, @telefone)";
+
+            using MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@nome", nome);
+            cmd.Parameters.AddWithValue("@email", email);
+            cmd.Parameters.AddWithValue("@telefone", telefone);
+
+            cmd.ExecuteNonQuery();
+
+            mensagem = "Cliente cadastrado com sucesso!";
+        }
+
+        catch (Exception ex)
+        {
+            mensagem = "Erro ao cadastrar cliente: " + ex.Message;
+        }
+
     }
 
     public class Cliente()
     {
+        public int id { get; set; }
         public string nome { get; set; }
         public string email { get; set; }
         public string telefone { get; set; }
+    }
 
+    void ListarClientes()
+    {
+        string conexao = "server=localhost;database=cadastro_cliente;user=root;password=root";
+
+        using MySqlConnection conn = new MySqlConnection(conexao);
+        conn.Open();
+
+        string sql = "SELECT * FROM CLIENTE";
+
+        using MySqlCommand cmd = new MySqlCommand(sql, conn);
+
+        using MySqlDataReader reader = cmd.ExecuteReader();
+
+        lista.Clear();
+
+        while (reader.Read())
+        {
+            Cliente cliente = new Cliente();
+
+            cliente.id = reader.GetInt32("id");
+            cliente.nome = reader.GetString("nome");
+            cliente.email = reader.GetString("email");
+            cliente.telefone = reader.GetString("telefone");
+
+            lista.Add(cliente);
+        }
+
+
+
+    }
+
+    void Excluir(int id)
+    {
+        // Implementação para excluir cliente
+        string conexao = "server=localhost;database=cadastro_cliente;user=root;password=root";
+
+        using MySqlConnection conn = new MySqlConnection(conexao);
+        conn.Open();
+
+        string sql = "DELETE FROM CLIENTE WHERE ID = @id";
+
+        using MySqlCommand cmd = new MySqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@id", id);
+
+        cmd.ExecuteNonQuery();
+
+        ListarClientes();
+    }
+
+    void LimparCampos()
+    {
+        nome = "";
+        telefone = "";
+        email = "";
     }
 
 }
