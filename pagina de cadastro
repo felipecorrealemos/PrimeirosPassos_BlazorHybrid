@@ -1,7 +1,7 @@
 @using MySql.Data.MySqlClient
 @page "/"
 
-<h1>Cadastro de Cliente</h1>
+<h1>@titulo</h1>
 
 <label>Nome</label>
 <br />
@@ -16,7 +16,9 @@
 <input type="text" class="form-control w-25" @bind="telefone" />
 <br />
 
-<button class="btn btn-outline-primary" @onclick="Cadastro">Cadastrar</button>
+<button class="btn btn-outline-primary" @onclick="Cadastro">@btnCadastrar</button>
+<button class="btn btn-outline-secondary @isVisibleBtnCancelar" @onclick="Cancelar">Cancelar</button>
+
 <br />
 <br />
 <p>Mensagem: @mensagem</p>
@@ -41,7 +43,10 @@
                 <td>@cliente.nome</td>
                 <td>@cliente.email</td>
                 <td>@cliente.telefone</td>
-                <td><button class="btn btn-outline-danger" @onclick="() => Excluir(cliente.id)">Excluir</button></td>
+                <td>
+                    <button class="btn btn-outline-danger" @onclick="() => Excluir(cliente.id)">Excluir</button>
+                    <button class="btn btn-outline-warning" @onclick="() => Editar(cliente.id)">Alterar</button>
+                </td>
 
             </tr>
         }
@@ -51,10 +56,14 @@
 
 @code {
 
+    int id;
     string nome;
     string email;
     string telefone;
     string mensagem;
+    string btnCadastrar = "Cadastrar";
+    string isVisibleBtnCancelar = "invisible";
+    string titulo = "Cadastro de cliente";
 
     List<Cliente> lista = new List<Cliente>();
 
@@ -65,10 +74,18 @@
 
     void Cadastro()
     {
-        //mensagem = "botao funcionando";
+        //Novo registro
+        if (btnCadastrar == "Cadastrar")
+        {
+            SalvarNoBanco(nome, email, telefone);
+        }
 
-        //salvarNoBanco
-        SalvarNoBanco(nome, email, telefone);
+        else
+        {
+            //Editar registro
+            AlterarNoBanco(id, nome,email, telefone);
+        }
+
         ListarClientes();
         LimparCampos();
     }
@@ -100,6 +117,26 @@
             mensagem = "Erro ao cadastrar cliente: " + ex.Message;
         }
 
+    }
+
+    void AlterarNoBanco(int id, string nome, string email, string telefone)
+    {
+        string conexao = "server=localhost;database=cadastro_cliente;user=root;password=root";
+
+        using MySqlConnection conn = new MySqlConnection(conexao);
+        conn.Open();
+
+        string sql = "UPDATE CLIENTE SET NOME = @NOME, EMAIL = @email, TELEFONE = @telefone WHERE ID = @id";
+
+        using MySqlCommand cmd = new MySqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@id", id);
+        cmd.Parameters.AddWithValue("@nome", nome);
+        cmd.Parameters.AddWithValue("@email", email);
+        cmd.Parameters.AddWithValue("@telefone", telefone);
+
+        cmd.ExecuteNonQuery();
+
+        mensagem = "Cliente alterado com sucesso!";
     }
 
     public class Cliente()
@@ -136,9 +173,6 @@
 
             lista.Add(cliente);
         }
-
-
-
     }
 
     void Excluir(int id)
@@ -156,7 +190,38 @@
 
         cmd.ExecuteNonQuery();
 
+        mensagem = "Cliente excluido com sucesso!";
+
         ListarClientes();
+    }
+
+    void Editar(int id)
+    {
+        this.id = id;
+        //carregar os dados id
+        string conexao = "server=localhost;database=cadastro_cliente;user=root;password=root";
+
+        using MySqlConnection conn = new MySqlConnection(conexao);
+        conn.Open();
+
+        string sql = "SELECT * FROM CLIENTE WHERE ID = @id";
+
+        using MySqlCommand cmd = new MySqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@id",id);
+
+        using MySqlDataReader reader = cmd.ExecuteReader();
+
+        if (reader.Read())
+        {
+            nome = reader.GetString("nome");
+            email = reader.GetString("email");
+            telefone = reader.GetString("telefone");
+        }
+
+        // alterar nome dos botoes e titulo
+        isVisibleBtnCancelar = "visible";
+        titulo = "Alterar Cliente";
+        btnCadastrar = "Alterar"; 
     }
 
     void LimparCampos()
@@ -164,6 +229,14 @@
         nome = "";
         telefone = "";
         email = "";
+    }
+
+    void Cancelar()
+    {
+        LimparCampos();
+        isVisibleBtnCancelar = "invisible";
+        titulo = "Cadastro de Cliente";
+        btnCadastrar = "Cadastrar";
     }
 
 }
